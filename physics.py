@@ -13,7 +13,7 @@ class Player:
 		self.rectangle = Rect(screenwidth / 2, screenheight - 50, 50, 50)
 		self.doublejump = True
 		self.gravity = 2
-		self.xvel = 4
+		self.xvel = 6
 		self.yvel = 0
 		self.jumpconst = 30
 		self.acceleration = 2
@@ -22,10 +22,10 @@ class Player:
 
 	def move(self, l, r, u, d):
 		global screenwidth, screenheight
-		if self.time < 500: self.xvel = 4
-		elif self.time < 750: self.xvel = 6
-		elif self.time < 1000: self.xvel = 8
-		else: self.xvel = 10
+		if self.time < 500: self.xvel = 6
+		elif self.time < 750: self.xvel = 8
+		elif self.time < 1000: self.xvel = 10
+		else: self.xvel = 12
 		self.time += 30
 		tmpcoord = self.rectangle.x
 		if r: 
