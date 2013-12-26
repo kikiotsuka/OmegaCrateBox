@@ -16,26 +16,32 @@ class Player:
 		self.xvel = 4
 		self.yvel = 0
 		self.jumpconst = 30
+		self.acceleration = 2
 		self.direction = 'none'
+		self.time = 0
 
-	def move(self, l, r, u, d, time):
+	def move(self, l, r, u, d):
 		global screenwidth, screenheight
-		if time < 500:
-			self.xvel = 4
-		elif time < 725:
-			self.xvel = 6
-		elif time < 1000:
-			self.xvel = 8
-		else:
-			self.xvel = 10
+		if self.time < 500: self.xvel = 4
+		elif self.time < 750: self.xvel = 6
+		elif self.time < 1000: self.xvel = 8
+		else: self.xvel = 10
+		self.time += 30
 		tmpcoord = self.rectangle.x
-		self.rectangle.x += self.xvel * r
-		self.rectangle.x -= self.xvel * l
+		if r: 
+			self.rectangle.x += self.xvel
+		if l: 
+			self.rectangle.x -= self.xvel
 		if self.rectangle.x < tmpcoord:
+			if self.direction == 'right':
+				self.time = 0
 			self.direction = 'left'
 		elif self.rectangle.x > tmpcoord:
+			if self.direction == 'left':
+				self.time = 0
 			self.direction = 'right'
 		else:
+			self.time = 0
 			self.direction = 'none'
 		self.yvel -= self.gravity
 		self.rectangle.y -= self.yvel
@@ -68,13 +74,11 @@ windowSurfaceObj = pygame.display.set_mode((screenwidth, screenheight))
 pygame.display.set_caption('Physics Test')
 
 player = Player()
-left=right=up=down=0
-time = 0
-doubletime = 0
+left=right=up=down=False
 timeconst = 1
 while True:
 	windowSurfaceObj.fill(pygame.Color(255, 255, 255))
-	player.move(left, right, up, down, time)
+	player.move(left, right, up, down)
 	pygame.draw.rect(windowSurfaceObj, pygame.Color(0, 0, 255), player.getrect())
 
 	for event in pygame.event.get():
@@ -83,27 +87,22 @@ while True:
 			sys.exit()
 		elif event.type == KEYDOWN:
 			if event.key in (K_LEFT, K_a):
-				left += timeconst
+				left = True
 			elif event.key in (K_RIGHT, K_d):
-				right += timeconst
+				right = True
 			elif event.key in (K_UP, K_w):
-				up += timeconst
+				up = True
 				player.startjump()
 			elif event.key == K_q:
 				pygame.quit()
 				sys.exit()
 		elif event.type == KEYUP:
 			if event.key in (K_LEFT, K_a):
-				left = 0
+				left = False
 			elif event.key in (K_RIGHT, K_d):
-				right = 0
+				right = False
 			elif event.key in (K_UP, K_w):
-				up = 0
+				up = False
 				player.endjump()
-	time += 30
-	if left != 0 and right != 0:
-		time = 0
-
-
 	pygame.display.update()
 	fpsClock.tick(30)
