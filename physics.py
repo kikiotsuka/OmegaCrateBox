@@ -107,13 +107,17 @@ player = Player()
 left=right=up=down=False
 timeconst = 1
 collisionboxes = []
-height = 20
+height = 25
 collisionboxes.append(Rect(0, screenheight / 2 - height / 2, screenwidth / 5, height))
 collisionboxes.append(Rect(screenwidth - screenwidth / 5, screenheight / 2 - height / 2, screenwidth / 5, height))
 collisionboxes.append(Rect(screenwidth / 5, screenheight / 4 - height / 2, screenwidth * 3 / 5, height))
 collisionboxes.append(Rect(screenwidth / 5, screenheight * 3 / 4 - height / 2, screenwidth * 3 / 5, height))
-collisionboxes.append(Rect(0, screenheight - height, screenwidth * 2 / 7, height))
-collisionboxes.append(Rect(screenwidth - screenwidth * 2 / 7, screenheight - height, screenwidth * 2 / 7, height))
+tmpconst = 2.0 / 7.0
+collisionboxes.append(Rect(0, screenheight - height, screenwidth * tmpconst, height))
+collisionboxes.append(Rect(screenwidth - screenwidth * tmpconst, screenheight - height, screenwidth * tmpconst, height))
+tmpconst = 3.0 / 7.0
+collisionboxes.append(Rect(0, 0, screenwidth * tmpconst, height))
+collisionboxes.append(Rect(screenwidth - screenwidth * tmpconst, 0, screenwidth * tmpconst, height))
 while True:
 	windowSurfaceObj.fill(pygame.Color(255, 255, 255))
 	for box in collisionboxes:
@@ -143,5 +147,8 @@ while True:
 			elif event.key in (K_UP, K_w):
 				up = False
 				player.endjump()
+	if up:
+		up = True
+		player.startjump()
 	pygame.display.update()
 	fpsClock.tick(60)
