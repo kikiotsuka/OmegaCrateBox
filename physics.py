@@ -4,22 +4,22 @@ from pygame.locals import *
 pygame.init()
 fpsClock = pygame.time.Clock()
 
-screenwidth = 800
-screenheight = 600
+screenwidth = 1000
+screenheight = 750
 
 class Player:
 	def __init__(self):
 		global screenwidth, screenheight
 		size = 30
-		self.rectangle = Rect(screenwidth / 2 - size / 2, screenheight - size, size, size)
+		self.rectangle = Rect(screenwidth / 2 - size / 2, screenheight / 2, size, size)
 		self.jumpcount = 0
-		self.gravity = 1
+		self.gravity = .8
 		self.xvel = 3
 		self.yvel = 0
 		self.jumpconst = 20
 		self.direction = 'none'
 		self.time = 0
-		self.onground = True
+		self.onground = False
 
 	def move(self, l, r, u, d):
 		global screenwidth, screenheight, collisionboxes
@@ -29,6 +29,7 @@ class Player:
 		else: self.xvel = 9
 		self.time += 25
 		tmpcoord = self.rectangle.x
+		tmpcenter = self.rectangle.center
 		if r: 
 			self.rectangle.x += self.xvel
 		if l: 
@@ -80,13 +81,14 @@ class Player:
 					self.rectangle.left = box.right
 					self.direction = 'none'
 					self.time = 0
+		if abs(self.yvel) != self.gravity and self.yvel != 0:
+			self.onground = False
 
 	def startjump(self):
-		global screenheight
 		if self.onground:
 			self.yvel = self.jumpconst
 			self.onground = False
-		elif self.jumpcount < 1: #player can jump n + 1 times
+		elif self.jumpcount < 0: #player can jump n + 1 times
 			self.yvel = self.jumpconst
 			self.jumpcount += 1
 
@@ -105,12 +107,13 @@ player = Player()
 left=right=up=down=False
 timeconst = 1
 collisionboxes = []
-collisionboxes.append(Rect(0, screenheight / 3 + 5 + 20, screenwidth / 4, 15))
-collisionboxes.append(Rect(0, screenheight / 3 * 2 + 5 + 20, screenwidth / 4, 15))
-collisionboxes.append(Rect(screenwidth - screenwidth / 4, screenheight / 3 + 5 + 20, screenwidth / 4, 15))
-collisionboxes.append(Rect(screenwidth - screenwidth / 4, screenheight / 3 * 2 + 5 + 20, screenwidth / 4, 15))
-collisionboxes.append(Rect(screenwidth / 2 - screenwidth / 8, screenheight / 2 + 20, screenwidth / 4, 15))
-
+height = 20
+collisionboxes.append(Rect(0, screenheight / 2 - height / 2, screenwidth / 5, height))
+collisionboxes.append(Rect(screenwidth - screenwidth / 5, screenheight / 2 - height / 2, screenwidth / 5, height))
+collisionboxes.append(Rect(screenwidth / 5, screenheight / 4 - height / 2, screenwidth * 3 / 5, height))
+collisionboxes.append(Rect(screenwidth / 5, screenheight * 3 / 4 - height / 2, screenwidth * 3 / 5, height))
+collisionboxes.append(Rect(0, screenheight - height, screenwidth * 2 / 7, height))
+collisionboxes.append(Rect(screenwidth - screenwidth * 2 / 7, screenheight - height, screenwidth * 2 / 7, height))
 while True:
 	windowSurfaceObj.fill(pygame.Color(255, 255, 255))
 	for box in collisionboxes:
