@@ -1,5 +1,6 @@
 import pygame, sys
 from pygame.locals import *
+from random import randint
 
 pygame.init()
 fpsClock = pygame.time.Clock()
@@ -57,6 +58,17 @@ class Pistol(Gun):
 			return Bullet(x, y, -13, 0)
 		return Bullet(x, y, 13, 0)
 
+class GunBox:
+	def __init__(self):
+		self.size = 15
+		while True:
+			rect = collisionboxes[randint(0, len(collisionboxes) - 3)]
+			self.x = randint(rect.left, rect.right - self.size)
+			self.y = rect.top - self.size
+			self.rectangle = Rect(self.x, self.y, self.size, self.size)
+			if not self.rectangle.colliderect(player.rectangle):
+				break
+
 class Player:
 	def __init__(self):
 		size = 30
@@ -66,16 +78,20 @@ class Player:
 		self.xvel = 3
 		self.yvel = 0
 		self.jumpconst = 20
-		self.direction = 'none'
+		self.direction = 'right'
 		self.time = 0
 		self.onground = False
 		self.weapon = Pistol()
+		self.score = 0
 
 	def fire(self):
 		global bulletlist
 		if self.weapon.fire():
-			bulletlist.append(self.weapon.bulletfire
-				(self.rectangle.right, self.rectangle.centery, self.direction))
+			if self.direction == 'right':
+				b = self.weapon.bulletfire(self.rectangle.right, self.rectangle.centery, self.direction)
+			else:
+				b = self.weapon.bulletfire(self.rectangle.left, self.rectangle.centery, self.direction)
+			bulletlist.append(b)
 		else:
 			if self.weapon.reloadtimer <= self.weapon.reloadtime:
 				self.weapon.reloadtimer += 60
@@ -176,6 +192,7 @@ collisionboxes.append(Rect(0, 0, screenwidth * tmpconst, height))
 collisionboxes.append(Rect(screenwidth - screenwidth * tmpconst, 0, screenwidth * tmpconst, height))
 space = False
 bulletlist = []
+gunbox = GunBox()
 while True:
 	windowSurfaceObj.fill(pygame.Color(255, 255, 255))
 	for index, bullet in enumerate(bulletlist):
@@ -189,11 +206,15 @@ while True:
 		if bullet.y > screenheight or bullet.y < 0: bulletlist.remove(bullet)
 		pygame.draw.line(windowSurfaceObj, pygame.Color(0, 0, 0), (int(bullet.x - bullet.xvel), int(bullet.y - bullet.yvel)), (bullet.x, bullet.y))
 	for box in collisionboxes:
-		pygame.draw.rect(windowSurfaceObj, pygame.Color(255, 0, 0), box)
+		pygame.draw.rect(windowSurfaceObj, pygame.Color(119, 136, 153), box)
 	player.move(left, right, up, down)
+	if player.rectangle.colliderect(gunbox.rectangle):
+		player.score += 1
+		gunbox = GunBox()
 	if space:
 		player.fire()
 	pygame.draw.rect(windowSurfaceObj, pygame.Color(0, 0, 255), player.getrect())
+	pygame.draw.rect(windowSurfaceObj, pygame.Color(139, 69, 19), gunbox.rectangle)
 	for event in pygame.event.get():
 		if event.type == QUIT:
 			pygame.quit()
