@@ -17,6 +17,7 @@ Types of guns
 	machine gun
 	gatling gun
 	laser
+	missilelauncher
 	sword
 """
 
@@ -38,6 +39,7 @@ class Gun(object):
 		self.reloadtime = None
 		self.reloadtimer = None
 		self.canfire = True
+		self.knockback = 0
 
 class Pistol(Gun):
 	def __init__(self):
@@ -55,8 +57,45 @@ class Pistol(Gun):
 
 	def bulletfire(self, x, y, direction):
 		if direction == 'left':
-			return Bullet(x, y, -13, 0)
-		return Bullet(x, y, 13, 0)
+			return [Bullet(x, y, -13, 0)]
+		return [Bullet(x, y, 13, 0)]
+
+class DualPistol(Pistol):
+	def __init__(self):
+		super(DualPistol, self).__init__()
+		self.type = 'DualPistol'
+
+	def bulletfire(self, x, y, direction):
+		if direction == 'right':
+			return [Bullet(x, y, 13, 0), Bullet(x - 30, y, -13, 0)]
+		return [Bullet(x + 30, y, 13, 0), Bullet(x, y, -13, 0)]
+
+class Revolver(Pistol):
+	def __init__(self):
+		super(Revolver, self).__init__()
+		self.type = 'Revolver'
+		self.reloadtime = 1700
+		self.reloadtimer = 1700
+		self.damage = 8
+
+class Shotgun(Pistol):
+	def __init__(self):
+		super(Shotgun, self).__init__()
+		self.type = 'Shotgun'
+		self.reloadtime = 2500
+		self.reloadtimer = 2500
+		self.damage = 7
+		self.knockback = 5
+
+	def bulletfire(self, x, y, direction):
+		if direction == 'right':
+			vel = 17
+		else:
+			vel = -17
+		tmplist = []
+		for i in range(randint(8, 13)):
+			tmplist.append(Bullet(x, y, vel, randint(-10, 3)))
+		return tmplist
 
 class GunBox:
 	def __init__(self):
@@ -83,6 +122,9 @@ class Player:
 		self.onground = False
 		self.weapon = Pistol()
 		self.score = 0
+		self.knockback = 0
+		self.friction = .5
+		self.justfired = False
 
 	def fire(self):
 		global bulletlist
@@ -91,11 +133,10 @@ class Player:
 				b = self.weapon.bulletfire(self.rectangle.right, self.rectangle.centery, self.direction)
 			else:
 				b = self.weapon.bulletfire(self.rectangle.left, self.rectangle.centery, self.direction)
-			bulletlist.append(b)
-		else:
-			if self.weapon.reloadtimer <= self.weapon.reloadtime:
-				self.weapon.reloadtimer += 60
-
+			for bullets in b:
+				bulletlist.append(bullets)
+			self.justfired = True
+			self.knockback = self.weapon.knockback
 
 	def move(self, l, r, u, d):
 		if self.time < 500: self.xvel = 3
@@ -119,6 +160,17 @@ class Player:
 			self.direction = 'right'
 		else:
 			self.time = 0
+		if self.justfired:
+			self.time = 0
+			#friction thing
+			if self.direction == 'right':
+				self.rectangle.x -= self.knockback
+			else:
+				self.rectangle.x += self.knockback
+			self.knockback -= self.friction
+		if self.knockback < 0:
+			self.knockback = 0
+			self.justfired = False
 		self.yvel -= self.gravity
 		self.rectangle.y -= self.yvel
 		if self.rectangle.left < 0:
@@ -193,6 +245,8 @@ collisionboxes.append(Rect(screenwidth - screenwidth * tmpconst, 0, screenwidth 
 space = False
 bulletlist = []
 gunbox = GunBox()
+#weaponlist = ['pistol', 'dualpistol', 'revolver', 'shotgun', 'machinegun', 'gatlinggun', 'laser', 'sword']
+weaponlist = [Pistol(), DualPistol(), Revolver(), Shotgun()]
 while True:
 	windowSurfaceObj.fill(pygame.Color(255, 255, 255))
 	for index, bullet in enumerate(bulletlist):
@@ -211,8 +265,16 @@ while True:
 	if player.rectangle.colliderect(gunbox.rectangle):
 		player.score += 1
 		gunbox = GunBox()
+		while True:
+			tmp = weaponlist[randint(0, len(weaponlist) - 1)]
+			if player.weapon.type != tmp.type:
+				player.weapon = tmp
+				break
+		print(player.weapon.type)
 	if space:
 		player.fire()
+	if player.weapon.reloadtimer <= player.weapon.reloadtime:
+		player.weapon.reloadtimer += 60
 	pygame.draw.rect(windowSurfaceObj, pygame.Color(0, 0, 255), player.getrect())
 	pygame.draw.rect(windowSurfaceObj, pygame.Color(139, 69, 19), gunbox.rectangle)
 	for event in pygame.event.get():
