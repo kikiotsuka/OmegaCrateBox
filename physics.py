@@ -40,7 +40,7 @@ class Gun(object):
 
 class Pistol(Gun):
 	def __init__(self):
-		super(Gun, self)
+		self = super(Gun, self).__init__()
 		self.reloadtime = 1000
 
 	def fire(self):
@@ -55,7 +55,6 @@ class Pistol(Gun):
 
 class Player:
 	def __init__(self):
-		global screenwidth, screenheight
 		size = 30
 		self.rectangle = Rect(screenwidth / 2 - size / 2, screenheight / 2, size, size)
 		self.jumpcount = 0
@@ -77,7 +76,6 @@ class Player:
 
 
 	def move(self, l, r, u, d):
-		global screenwidth, screenheight, collisionboxes
 		if self.time < 500: self.xvel = 3
 		elif self.time < 750: self.xvel = 4
 		elif self.time < 1000: self.xvel = 6
