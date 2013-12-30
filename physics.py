@@ -7,6 +7,52 @@ fpsClock = pygame.time.Clock()
 screenwidth = 1000
 screenheight = 750
 
+"""
+Types of guns
+	pistol
+	dual pistol
+	revolver
+	shotgun
+	machine gun
+	gatling gun
+	laser
+	sword
+"""
+
+class Bullet:
+	def __init__(self, x, y, xvel, yvel):
+		self.x = x
+		self.y = y
+		self.xvel = xvel
+		self.yvel = yvel
+
+	def move():
+		self.x += self.xvel
+		self.y += self.yvel
+
+class Gun(object):
+	def __init__(self):
+		self.type = guntype
+		self.damage = 5
+		self.reloadtime = None
+		self.reloadtimer = 0
+		self.canfire = True
+
+class Pistol(Gun):
+	def __init__(self):
+		super(Gun, self)
+		self.reloadtime = 1000
+
+	def fire(self):
+		if self.reloadtimer >= self.reloadtime:
+			self.canfire = False
+			self.reloadtimer = 0
+			return True
+		return False
+
+	def bulletfire(self, x, y):
+		return Bullet(x, y, 13, 0)
+
 class Player:
 	def __init__(self):
 		global screenwidth, screenheight
@@ -20,6 +66,15 @@ class Player:
 		self.direction = 'none'
 		self.time = 0
 		self.onground = False
+		self.weapon = Pistol()
+
+	def fire(self):
+		global bulletlist
+		if self.weapon.fire():
+			bulletlist.append(self.weapon.bulletfire(self.rectangle.right, self.rectangle.centery))
+		else:
+			self.weapon.reloadtimer += 60
+
 
 	def move(self, l, r, u, d):
 		global screenwidth, screenheight, collisionboxes
@@ -118,11 +173,19 @@ collisionboxes.append(Rect(screenwidth - screenwidth * tmpconst, screenheight - 
 tmpconst = 3.0 / 7.0
 collisionboxes.append(Rect(0, 0, screenwidth * tmpconst, height))
 collisionboxes.append(Rect(screenwidth - screenwidth * tmpconst, 0, screenwidth * tmpconst, height))
+space = False
+bulletlist = []
 while True:
 	windowSurfaceObj.fill(pygame.Color(255, 255, 255))
+	for index, bullet in enumerate(bulletlist):
+		bullet.move()
+		bulletlist[index] = bullet
+		pygame.draw.line(windowSurfaceObj, pygame.Color(0, 0, 0), bullet.x - bullet.xvel, (bullet.y - bullet.yvel), (bullet.x, bullet.y))
 	for box in collisionboxes:
 		pygame.draw.rect(windowSurfaceObj, pygame.Color(255, 0, 0), box)
 	player.move(left, right, up, down)
+	if space:
+		player.fire()
 	pygame.draw.rect(windowSurfaceObj, pygame.Color(0, 0, 255), player.getrect())
 	for event in pygame.event.get():
 		if event.type == QUIT:
@@ -136,6 +199,8 @@ while True:
 			elif event.key in (K_UP, K_w):
 				up = True
 				player.startjump()
+			elif event.key == K_SPACE:
+				space = True
 			elif event.key == K_q:
 				pygame.quit()
 				sys.exit()
@@ -147,8 +212,9 @@ while True:
 			elif event.key in (K_UP, K_w):
 				up = False
 				player.endjump()
-	if up:
-		up = True
+			elif event.key -- K_SPACE:
+				space = False
+	if up and player.onground:
 		player.startjump()
 	pygame.display.update()
 	fpsClock.tick(60)
