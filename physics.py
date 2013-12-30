@@ -81,6 +81,13 @@ class Revolver(Pistol):
 		self.reloadtimer = 1700
 		self.damage = 8
 
+	def bulletfire(self, x, y, direction):
+		if direction == 'left':
+			self.vel = -abs(self.vel)
+		else:
+			self.vel = abs(self.vel)
+		return [Bullet(x, y, self.vel, 0)]
+
 class Shotgun(Pistol):
 	def __init__(self):
 		super(Shotgun, self).__init__()
@@ -178,8 +185,7 @@ class Player:
 		self.direction = 'right'
 		self.time = 0
 		self.onground = False
-		#self.weapon = Pistol()
-		self.weapon = Laser()
+		self.weapon = Pistol()
 		self.score = 0
 		self.knockback = 0
 		self.friction = .5
@@ -339,17 +345,16 @@ while True:
 			player.fire()
 			if laserrect != None:
 				pygame.draw.rect(windowSurfaceObj, pygame.Color(255, 0, 0), laserrect)
-	else:
-		for index, bullet in enumerate(bulletlist):
-			bullet.move()
-			bulletlist[index] = bullet
-			for box in collisionboxes:
-				if box.collidepoint(int(bullet.x), int(bullet.y)):
-					bulletlist.remove(bullet)
-					break;
-			if bullet.x > screenwidth or bullet.x < 0: bulletlist.remove(bullet)
-			if bullet.y > screenheight or bullet.y < 0: bulletlist.remove(bullet)
-			pygame.draw.line(windowSurfaceObj, pygame.Color(0, 0, 0), (int(bullet.x - bullet.xvel), int(bullet.y - bullet.yvel)), (bullet.x, bullet.y))
+	for index, bullet in enumerate(bulletlist):
+		bullet.move()
+		bulletlist[index] = bullet
+		for box in collisionboxes:
+			if box.collidepoint(int(bullet.x), int(bullet.y)):
+				bulletlist.remove(bullet)
+				break;
+		if bullet.x > screenwidth or bullet.x < 0: bulletlist.remove(bullet)
+		if bullet.y > screenheight or bullet.y < 0: bulletlist.remove(bullet)
+		pygame.draw.line(windowSurfaceObj, pygame.Color(0, 0, 0), (int(bullet.x - bullet.xvel), int(bullet.y - bullet.yvel)), (bullet.x, bullet.y))
 	for box in collisionboxes:
 		pygame.draw.rect(windowSurfaceObj, pygame.Color(119, 136, 153), box)
 	player.move(left, right, up, down)
