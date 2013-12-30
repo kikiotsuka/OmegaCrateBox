@@ -40,7 +40,7 @@ class Gun(object):
 
 class Pistol(Gun):
 	def __init__(self):
-		self = super(Gun, self).__init__()
+		super(Gun, self).__init__()
 		self.reloadtime = 1000
 
 	def fire(self):
