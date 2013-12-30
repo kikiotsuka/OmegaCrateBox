@@ -26,22 +26,24 @@ class Bullet:
 		self.xvel = xvel
 		self.yvel = yvel
 
-	def move():
+	def move(self):
 		self.x += self.xvel
 		self.y += self.yvel
 
 class Gun(object):
 	def __init__(self):
-		self.type = guntype
+		self.type = None
 		self.damage = 5
 		self.reloadtime = None
-		self.reloadtimer = 0
+		self.reloadtimer = None
 		self.canfire = True
 
 class Pistol(Gun):
 	def __init__(self):
-		super(Gun, self).__init__()
+		super(Pistol, self).__init__()
 		self.reloadtime = 1000
+		self.reloadtimer = 1000
+		self.type = 'Pistol'
 
 	def fire(self):
 		if self.reloadtimer >= self.reloadtime:
@@ -50,7 +52,9 @@ class Pistol(Gun):
 			return True
 		return False
 
-	def bulletfire(self, x, y):
+	def bulletfire(self, x, y, direction):
+		if direction == 'left':
+			return Bullet(x, y, -13, 0)
 		return Bullet(x, y, 13, 0)
 
 class Player:
@@ -70,9 +74,11 @@ class Player:
 	def fire(self):
 		global bulletlist
 		if self.weapon.fire():
-			bulletlist.append(self.weapon.bulletfire(self.rectangle.right, self.rectangle.centery))
+			bulletlist.append(self.weapon.bulletfire
+				(self.rectangle.right, self.rectangle.centery, self.direction))
 		else:
-			self.weapon.reloadtimer += 60
+			if self.weapon.reloadtimer <= self.weapon.reloadtime:
+				self.weapon.reloadtimer += 60
 
 
 	def move(self, l, r, u, d):
@@ -97,7 +103,6 @@ class Player:
 			self.direction = 'right'
 		else:
 			self.time = 0
-			self.direction = 'none'
 		self.yvel -= self.gravity
 		self.rectangle.y -= self.yvel
 		if self.rectangle.left < 0:
@@ -128,11 +133,9 @@ class Player:
 					self.yvel = 0
 				if l < r and l < t and l < b: #left
 					self.rectangle.right = box.left
-					self.direction = 'none'
 					self.time = 0
 				if r < l and r < t and r < b: #right
 					self.rectangle.left = box.right
-					self.direction = 'none'
 					self.time = 0
 		if abs(self.yvel) != self.gravity and self.yvel != 0:
 			self.onground = False
@@ -178,7 +181,13 @@ while True:
 	for index, bullet in enumerate(bulletlist):
 		bullet.move()
 		bulletlist[index] = bullet
-		pygame.draw.line(windowSurfaceObj, pygame.Color(0, 0, 0), bullet.x - bullet.xvel, (bullet.y - bullet.yvel), (bullet.x, bullet.y))
+		for box in collisionboxes:
+			if box.collidepoint(int(bullet.x), int(bullet.y)):
+				bulletlist.remove(bullet)
+				break;
+		if bullet.x > screenwidth or bullet.x < 0: bulletlist.remove(bullet)
+		if bullet.y > screenheight or bullet.y < 0: bulletlist.remove(bullet)
+		pygame.draw.line(windowSurfaceObj, pygame.Color(0, 0, 0), (int(bullet.x - bullet.xvel), int(bullet.y - bullet.yvel)), (bullet.x, bullet.y))
 	for box in collisionboxes:
 		pygame.draw.rect(windowSurfaceObj, pygame.Color(255, 0, 0), box)
 	player.move(left, right, up, down)
