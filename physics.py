@@ -2,12 +2,17 @@ import pygame, sys
 from pygame.locals import *
 from random import randint
 from time import sleep
+import os
+import ctypes
 
 pygame.init()
 fpsClock = pygame.time.Clock()
 
 screenwidth = 1000
 screenheight = 750
+user32 = ctypes.windll.user32
+userscreenwidth = user32.GetSystemMetrics(0)
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (userscreenwidth / 2 - screenwidth / 2, 2)
 
 """
 Types of guns
